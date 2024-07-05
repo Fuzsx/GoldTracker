@@ -56,7 +56,7 @@ local function calculateGoldSummary()
         local mostRecentGold, previousGold = getRecentAndPreviousGold(dates)
         
         if mostRecentGold then
-            local change = previousGold and mostRecentGold - previousGold or "No Change"
+            local change = previousGold and mostRecentGold - previousGold or 0
             
             summary[char] = {
                 currentGold = mostRecentGold,
@@ -64,9 +64,7 @@ local function calculateGoldSummary()
             }
             
             totalGold = totalGold + mostRecentGold
-            if type(change) == "number" then
-                totalChange = totalChange + change
-            end
+            totalChange = totalChange + change
         end
     end
     
@@ -118,7 +116,7 @@ frame:SetScript("OnEvent", eventHandler)
 
 -- Create the UI frame for displaying gold summary for the current month
 local goldFrame = CreateFrame("Frame", "GoldTrackerFrame", UIParent, "BasicFrameTemplateWithInset")
-goldFrame:SetSize(400, 300)
+goldFrame:SetSize(450, 300)
 goldFrame:SetPoint("CENTER", UIParent, "CENTER")
 goldFrame:EnableMouse(true)  -- Enable mouse interaction for frame
 goldFrame:SetMovable(true)   -- Make the frame movable
@@ -156,6 +154,29 @@ local function populateGoldSummary()
     
     local lineHeight = 20
     local currentHeight = 0
+
+    -- Create table header
+    local headerChar = content.lines[#content.lines + 1] or content:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    headerChar:SetPoint("TOPLEFT", 0, -currentHeight)
+    headerChar:SetText("Character Name")
+    headerChar:Show()
+    table.insert(content.lines, headerChar)
+    
+    local headerGold = content.lines[#content.lines + 1] or content:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    headerGold:SetPoint("TOPLEFT", 180, -currentHeight)  -- Adjusted x-coordinate
+    headerGold:SetText("Gold")
+    headerGold:SetJustifyH("RIGHT") -- Right justify
+    headerGold:Show()
+    table.insert(content.lines, headerGold)
+    
+    local headerChange = content.lines[#content.lines + 1] or content:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    headerChange:SetPoint("TOPLEFT", 280, -currentHeight)
+    headerChange:SetText("Since Yesterday")
+    headerChange:SetJustifyH("RIGHT") -- Right justify
+    headerChange:Show()
+    table.insert(content.lines, headerChange)
+    
+    currentHeight = currentHeight + lineHeight
     
     for char, data in pairs(summary) do
         local currentGold = data.currentGold
@@ -163,38 +184,38 @@ local function populateGoldSummary()
         
         local charLine = content.lines[#content.lines + 1] or content:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
         charLine:SetPoint("TOPLEFT", 0, -currentHeight)
-        charLine:SetText(char .. ": " .. formatNumber(math.floor(currentGold / 10000)) .. " g")
+        charLine:SetText(char)
         charLine:Show()
         table.insert(content.lines, charLine)
-        currentHeight = currentHeight + lineHeight
         
-        if change ~= "No Change" then
-            local changeLine = content.lines[#content.lines + 1] or content:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-            changeLine:SetPoint("TOPLEFT", 20, -currentHeight)
-            changeLine:SetText("Since Yesterday: " .. formatNumber(math.floor(change / 10000)) .. " g")
-            changeLine:Show()
-            table.insert(content.lines, changeLine)
-            currentHeight = currentHeight + lineHeight
+        local goldLine = content.lines[#content.lines + 1] or content:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+        goldLine:SetPoint("TOPLEFT", 180, -currentHeight)  -- Adjusted x-coordinate
+        goldLine:SetText(formatNumber(math.floor(currentGold / 10000)) .. "g")
+        goldLine:SetJustifyH("RIGHT") -- Right justify
+        goldLine:Show()
+        table.insert(content.lines, goldLine)
+        
+        local changeLine = content.lines[#content.lines + 1] or content:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+        changeLine:SetPoint("TOPLEFT", 280, -currentHeight)
+        
+        -- Set color based on change
+        if change < 0 then
+            changeLine:SetText("|cFFFF0000" .. formatNumber(math.floor(change / 10000)) .. "g|r")
+        elseif change > 0 then
+            changeLine:SetText("|cFF00FF00" .. formatNumber(math.floor(change / 10000)) .. "g|r")
+        else
+            changeLine:SetText(formatNumber(math.floor(change / 10000)) .. "g")
         end
+        
+        changeLine:SetJustifyH("RIGHT") -- Right justify
+        changeLine:Show()
+        table.insert(content.lines, changeLine)
+        
+        currentHeight = currentHeight + lineHeight
     end
     
     -- Display total gold and total change summary in the header
-    goldFrame.title:SetText("Gold Tracker - Total: " .. formatNumber(math.floor(totalGold / 10000)) .. " g - Since Yesterday: " .. formatNumber(math.floor(totalChange / 10000)) .. " g")
-    
-    -- Display total gold and total change summary
-    local totalLine = content.lines[#content.lines + 1] or content:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-    totalLine:SetPoint("TOPLEFT", 0, -currentHeight - 10)
-    totalLine:SetText("Total: " .. formatNumber(math.floor(totalGold / 10000)) .. " g")
-    totalLine:Show()
-    table.insert(content.lines, totalLine)
-    currentHeight = currentHeight + lineHeight
-    
-    local totalChangeLine = content.lines[#content.lines + 1] or content:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-    totalChangeLine:SetPoint("TOPLEFT", 0, -currentHeight)
-    totalChangeLine:SetText("Since Yesterday: " .. formatNumber(math.floor(totalChange / 10000)) .. " g")
-    totalChangeLine:Show()
-    table.insert(content.lines, totalChangeLine)
-    currentHeight = currentHeight + lineHeight
+    goldFrame.title:SetText("Gold Tracker - Total: " .. formatNumber(math.floor(totalGold / 10000)) .. "g - Since Yesterday: " .. formatNumber(math.floor(totalChange / 10000)) .. "g")
     
     content:SetHeight(currentHeight)
 end
@@ -202,6 +223,6 @@ end
 -- Slash command to show gold summary for the current month
 SLASH_GOLDTRACKER1 = "/gt"
 SlashCmdList["GOLDTRACKER"] = function()
-    populateGoldSummary()
     goldFrame:Show()
+    populateGoldSummary()
 end
