@@ -1,0 +1,8 @@
+## Interface: 30400
+## Title: Fuzs - Gold Tracker
+## Notes: Tracks the amount of gold each character has by day.
+## Author: Fuzs
+## Version: 1.0
+## SavedVariables: GoldTrackerDB
+
+GoldTracker.lua
