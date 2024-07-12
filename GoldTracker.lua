@@ -224,5 +224,5 @@ end
 SLASH_GOLDTRACKER1 = "/gt"
 SlashCmdList["GOLDTRACKER"] = function()
     goldFrame:Show()
-    populateGoldSummary()
+    populateGoldSummary()  -- Ensure the summary is updated whenever the frame is shown
 end
