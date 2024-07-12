@@ -1,7 +1,7 @@
 -- Create the main frame
 local frame = CreateFrame("Frame")
 
--- Initialize the saved variables table if it doesn't exist.
+-- Initialize the saved variables table if it doesn't exist
 if not GoldTrackerDB then
     GoldTrackerDB = {}
 end
